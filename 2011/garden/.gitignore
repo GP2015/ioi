@@ -1,0 +1,9 @@
+/c_src
+/include
+/sample
+/subtask1
+/subtask2
+/subtask3
+/target
+*.exe
+*.ps1
