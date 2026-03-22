@@ -1,4 +1,3 @@
-mod cache;
 mod fountain;
 mod state;
 mod subroutes;
@@ -6,8 +5,6 @@ mod util;
 
 use state::State;
 use std::ffi::c_int;
-
-use crate::cache::Cache;
 
 unsafe extern "C" {
     fn answer(x: c_int);
@@ -83,8 +80,6 @@ impl<'a> GF<'a> {
 }
 
 fn count_routes_safe(n: u32, m: u32, p: u32, r: RF, q: u16, g: GF) {
-    // println!("n: {n}, m: {m}, q: {q}");
-
     // println!("Start");
 
     let fountains = fountain::generate_fountains(n, m, r);
@@ -95,8 +90,6 @@ fn count_routes_safe(n: u32, m: u32, p: u32, r: RF, q: u16, g: GF) {
 
     // println!("Subroutes generated");
 
-    let mut cache = Cache::new();
-
     for group in 0..q {
         let mut number_of_routes = 0;
 
@@ -104,7 +97,7 @@ fn count_routes_safe(n: u32, m: u32, p: u32, r: RF, q: u16, g: GF) {
             let start_state = State::from(start_fountain, false);
 
             let steps = g.get(group);
-            let end_state = subroutes::state_plus_steps(steps, start_state, &subroutes, &mut cache);
+            let end_state = subroutes::state_plus_steps(steps, start_state, &subroutes);
 
             if end_state.fountain == p {
                 number_of_routes += 1;
@@ -113,8 +106,6 @@ fn count_routes_safe(n: u32, m: u32, p: u32, r: RF, q: u16, g: GF) {
 
         call_answer(number_of_routes);
     }
-
-    // cache.print_summary();
 
     // println!("Finished");
 }

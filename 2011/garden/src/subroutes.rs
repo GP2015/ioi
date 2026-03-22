@@ -1,4 +1,4 @@
-use crate::{cache::Cache, fountain::Fountain, state::State, util};
+use crate::{fountain::Fountain, state::State, util};
 use ahash::AHashMap;
 
 pub const SUBROUTES_LENGTH: usize = 30;
@@ -38,13 +38,7 @@ pub fn state_plus_steps(
     steps: u32,
     start_state: State,
     subroutes: &[AHashMap<State, State>; SUBROUTES_LENGTH],
-    cache: &mut Cache,
 ) -> State {
-    let key = (start_state, steps);
-    if cache.contains_key(&key) {
-        return *cache.get(&key).unwrap();
-    }
-
     let prev_pow = util::prev_power_of_two(steps);
     let exp = prev_pow.ilog2() as usize;
     let next_state = subroutes[exp].get(&start_state).unwrap();
@@ -55,7 +49,5 @@ pub fn state_plus_steps(
         return *next_state;
     }
 
-    let end_state = state_plus_steps(remaining_steps, *next_state, subroutes, cache);
-    cache.insert(key, end_state);
-    end_state
+    state_plus_steps(remaining_steps, *next_state, subroutes)
 }
