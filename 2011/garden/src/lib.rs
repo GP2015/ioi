@@ -1,9 +1,9 @@
-mod fountain;
+mod dist;
+mod fountains;
 mod state;
-mod subroutes;
-mod util;
+mod transitions;
 
-use state::State;
+use crate::{fountains::Fountains, transitions::StateTransitions};
 use std::ffi::c_int;
 
 unsafe extern "C" {
@@ -80,32 +80,25 @@ impl<'a> GF<'a> {
 }
 
 fn count_routes_safe(n: u32, m: u32, p: u32, r: RF, q: u16, g: GF) {
-    // println!("Start");
+    let fountains = Fountains::from(n, m, &r);
+    let transitions = StateTransitions::from(&fountains, n);
 
-    let fountains = fountain::generate_fountains(n, m, r);
+    // let subroutes = subroutes::generate_subroutes(&fountains, n);
 
-    // println!("Fountains generated");
+    // for group in 0..q {
+    //     let mut number_of_routes = 0;
 
-    let subroutes = subroutes::generate_subroutes(&fountains, n);
+    //     for start_fountain in 0..n {
+    //         let start_state = State::from(start_fountain, false);
 
-    // println!("Subroutes generated");
+    //         let steps = g.get(group);
+    //         let end_state = subroutes::state_plus_steps(steps, start_state, &subroutes);
 
-    for group in 0..q {
-        let mut number_of_routes = 0;
+    //         if end_state.fountain == p {
+    //             number_of_routes += 1;
+    //         }
+    //     }
 
-        for start_fountain in 0..n {
-            let start_state = State::from(start_fountain, false);
-
-            let steps = g.get(group);
-            let end_state = subroutes::state_plus_steps(steps, start_state, &subroutes);
-
-            if end_state.fountain == p {
-                number_of_routes += 1;
-            }
-        }
-
-        call_answer(number_of_routes);
-    }
-
-    // println!("Finished");
+    //     call_answer(number_of_routes);
+    // }
 }
