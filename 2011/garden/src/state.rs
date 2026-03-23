@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, Hash, PartialEq)]
 pub struct State {
     pub fountain: u32,
     pub took_best_trail: bool,

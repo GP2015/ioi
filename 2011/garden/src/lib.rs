@@ -1,10 +1,9 @@
-mod dist;
-mod fountains;
 mod state;
-mod transitions;
+mod state_map;
 
-use crate::{fountains::Fountains, transitions::StateTransitions};
 use std::ffi::c_int;
+
+use crate::state_map::StateMap;
 
 unsafe extern "C" {
     fn answer(x: c_int);
@@ -60,8 +59,8 @@ impl<'a> RF<'a> {
         Self { data: r }
     }
 
-    fn get(&self, trail: u32, side: bool) -> u32 {
-        self.data[trail as usize][side as usize] as u32
+    fn get(&self, trail: u32, side: usize) -> u32 {
+        self.data[trail as usize][side] as u32
     }
 }
 
@@ -80,25 +79,89 @@ impl<'a> GF<'a> {
 }
 
 fn count_routes_safe(n: u32, m: u32, p: u32, r: RF, q: u16, g: GF) {
-    let fountains = Fountains::from(n, m, &r);
-    let transitions = StateTransitions::from(&fountains, n);
+    let mut state_map = StateMap::new(n);
+    state_map.add_next_states(m, r);
+    state_map.add_distances_to_p(n, p);
 
-    // let subroutes = subroutes::generate_subroutes(&fountains, n);
+    for group in 0..q {
+        let steps = g.get(group) as usize;
+        let mut number_of_routes = 0;
 
-    // for group in 0..q {
-    //     let mut number_of_routes = 0;
+        for starting_fountain in 0..n {
+            let point = state_map.point(starting_fountain, false);
 
-    //     for start_fountain in 0..n {
-    //         let start_state = State::from(start_fountain, false);
+            let Some(steps_to_p) = point.steps_to_p else {
+                continue;
+            };
 
-    //         let steps = g.get(group);
-    //         let end_state = subroutes::state_plus_steps(steps, start_state, &subroutes);
+            if steps < steps_to_p {
+                continue;
+            }
 
-    //         if end_state.fountain == p {
-    //             number_of_routes += 1;
-    //         }
-    //     }
+            let best_trail_to_p = point.best_trail_to_p;
 
-    //     call_answer(number_of_routes);
-    // }
+            let p_point = state_map.point(p, best_trail_to_p);
+
+            let Some(steps_to_p2) = p_point.steps_to_p else {
+                if steps == steps_to_p {
+                    number_of_routes += 1;
+                }
+                continue;
+            };
+
+            let best_trail_to_p2 = p_point.best_trail_to_p;
+
+            if best_trail_to_p == best_trail_to_p2 {
+                let steps_dif = steps - steps_to_p;
+
+                if steps_dif.is_multiple_of(steps_to_p2) || steps_to_p2 == 0 {
+                    number_of_routes += 1;
+                }
+                continue;
+            }
+
+            if steps < steps_to_p + steps_to_p2 {
+                if steps == steps_to_p {
+                    number_of_routes += 1;
+                }
+                continue;
+            }
+
+            let p2_point = state_map.point(p, best_trail_to_p2);
+
+            let Some(steps_to_p3) = p2_point.steps_to_p else {
+                if steps == steps_to_p || steps == steps_to_p2 {
+                    number_of_routes += 1;
+                }
+                continue;
+            };
+
+            let best_trail_to_p3 = p2_point.best_trail_to_p;
+
+            if best_trail_to_p2 == best_trail_to_p3 {
+                if steps == steps_to_p {
+                    number_of_routes += 1;
+                    continue;
+                }
+
+                let steps_dif = steps - steps_to_p - steps_to_p2;
+
+                if steps_dif.is_multiple_of(steps_to_p3) || steps_to_p3 == 0 {
+                    number_of_routes += 1;
+                }
+                continue;
+            }
+
+            let steps_to_loop = steps_to_p2 + steps_to_p3;
+
+            for steps_dif in [steps - steps_to_p, steps - steps_to_p - steps_to_p2] {
+                if steps_dif.is_multiple_of(steps_to_loop) || steps_to_loop == 0 {
+                    number_of_routes += 1;
+                    break;
+                }
+            }
+        }
+
+        call_answer(number_of_routes);
+    }
 }
