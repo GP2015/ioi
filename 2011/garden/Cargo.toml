@@ -7,4 +7,4 @@ edition = "2024"
 crate-type = ["staticlib"]
 
 [dependencies]
-ahash = "0.8.12"
+delegate = "0.13.5"

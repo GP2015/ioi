@@ -1,9 +1,9 @@
+mod passed_map;
 mod state;
 mod state_map;
 
-use std::ffi::c_int;
-
 use crate::state_map::StateMap;
+use std::ffi::c_int;
 
 unsafe extern "C" {
     fn answer(x: c_int);
@@ -82,36 +82,43 @@ fn count_routes_safe(n: u32, m: u32, p: u32, r: RF, q: u16, g: GF) {
     let mut state_map = StateMap::new(n);
     state_map.add_next_states(m, r);
     state_map.add_distances_to_p(n, p);
+    solve(state_map, n, p, q, g);
+}
 
+fn solve(state_map: StateMap, n: u32, p: u32, q: u16, g: GF) {
     for group in 0..q {
-        let steps = g.get(group) as usize;
+        let steps = g.get(group);
         let mut number_of_routes = 0;
 
         for starting_fountain in 0..n {
             let point = state_map.point(starting_fountain, false);
 
-            let Some(steps_to_p) = point.steps_to_p else {
+            if !point.has_p_hit_info() {
                 continue;
-            };
+            }
+
+            let steps_to_p = point.steps_to_p();
 
             if steps < steps_to_p {
                 continue;
             }
 
-            let best_trail_to_p = point.best_trail_to_p;
+            let p_took_best_trail = point.p_took_best_trail();
 
-            let p_point = state_map.point(p, best_trail_to_p);
+            let p_point = state_map.point(p, p_took_best_trail);
 
-            let Some(steps_to_p2) = p_point.steps_to_p else {
+            if !p_point.has_p_hit_info() {
                 if steps == steps_to_p {
                     number_of_routes += 1;
                 }
                 continue;
-            };
+            }
 
-            let best_trail_to_p2 = p_point.best_trail_to_p;
+            let steps_to_p2 = p_point.steps_to_p();
 
-            if best_trail_to_p == best_trail_to_p2 {
+            let p2_took_best_trail = p_point.p_took_best_trail();
+
+            if p_took_best_trail == p2_took_best_trail {
                 let steps_dif = steps - steps_to_p;
 
                 if steps_dif.is_multiple_of(steps_to_p2) || steps_to_p2 == 0 {
@@ -127,18 +134,20 @@ fn count_routes_safe(n: u32, m: u32, p: u32, r: RF, q: u16, g: GF) {
                 continue;
             }
 
-            let p2_point = state_map.point(p, best_trail_to_p2);
+            let p2_point = state_map.point(p, p2_took_best_trail);
 
-            let Some(steps_to_p3) = p2_point.steps_to_p else {
+            if !p2_point.has_p_hit_info() {
                 if steps == steps_to_p || steps == steps_to_p2 {
                     number_of_routes += 1;
                 }
                 continue;
-            };
+            }
 
-            let best_trail_to_p3 = p2_point.best_trail_to_p;
+            let steps_to_p3 = p2_point.steps_to_p();
 
-            if best_trail_to_p2 == best_trail_to_p3 {
+            let p3_took_best_trail = p2_point.p_took_best_trail();
+
+            if p2_took_best_trail == p3_took_best_trail {
                 if steps == steps_to_p {
                     number_of_routes += 1;
                     continue;
