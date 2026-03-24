@@ -1,9 +1,9 @@
 use delegate::delegate;
 
-const HAS_NEXT_STATE_INDEX: u32 = 0;
+const NEXT_TOOK_BEST_TRAIL_INDEX: u32 = 0;
 const NEXT_FOUNTAIN_START_INDEX: u32 = 1;
 const NEXT_FOUNTAIN_SIZE: u32 = 18;
-const NEXT_TOOK_BEST_TRAIL_INDEX: u32 = 19;
+const HAS_NEXT_STATE_INDEX: u32 = 19;
 const HAS_CAN_REACH_P_INDEX: u32 = 20;
 const CAN_REACH_P_INDEX: u32 = 21;
 const HAS_P_HIT_INFO_INDEX: u32 = 22;
