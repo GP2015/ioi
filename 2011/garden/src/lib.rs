@@ -31,10 +31,19 @@ pub unsafe extern "C" fn count_routes(
     q: c_int,
     g: *const c_int,
 ) {
+    assert!((2..=150_000).contains(&n));
+    assert!((1..=150_000).contains(&m));
+    assert!((0..=149_999).contains(&p));
+    assert!((1..=2_000).contains(&q));
+
     let r = unsafe { std::slice::from_raw_parts(r, (m * 2) as usize) };
+    r.iter()
+        .for_each(|val| assert!((0..=149_999).contains(val)));
     let (r, _) = r.as_chunks::<2>();
 
     let g = unsafe { std::slice::from_raw_parts(g, q as usize) };
+    g.iter()
+        .for_each(|val| assert!((1..=1_000_000_000).contains(val)));
 
     count_routes_safe(
         n as u32,
@@ -46,8 +55,8 @@ pub unsafe extern "C" fn count_routes(
     );
 }
 
-fn call_answer(x: usize) {
-    unsafe { answer(x as i32) };
+fn call_answer(x: i32) {
+    unsafe { answer(x) };
 }
 
 struct RF<'a> {
