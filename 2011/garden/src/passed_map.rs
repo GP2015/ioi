@@ -24,8 +24,11 @@ impl StatesPassedMap {
     }
 
     pub fn insert(&mut self, state: u32, steps: u32) {
+        assert!(state < 300_000);
+        assert!(steps < 300_000);
         self.steps_data[state as usize] = (steps << 1) | 1;
         self.states.push(state);
+        assert!(self.states.len() < 300_000);
     }
 
     pub fn clear(&mut self) {

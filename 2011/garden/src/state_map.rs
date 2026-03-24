@@ -54,17 +54,17 @@ impl StateMap {
                 let current_fountain = r.get(trail, side);
                 let next_fountain = r.get(trail, 1 - side);
 
-                if self.best_in(current_fountain).has_next_state() {
+                if self.best_in(current_fountain).next_state().is_some() {
                     continue;
                 }
 
-                let is_best_trail = !self.runner_in(current_fountain).has_next_state();
+                let is_best_trail = self.runner_in(current_fountain).next_state().is_none();
                 let is_next_best_trail;
 
-                if self.runner_in(next_fountain).has_next_state() {
+                if self.runner_in(next_fountain).next_state().is_some() {
                     is_next_best_trail = false;
 
-                    if !self.best_in(next_fountain).has_next_state() {
+                    if self.best_in(next_fountain).next_state().is_none() {
                         self.best_in_mut(next_fountain)
                             .set_next_state(current_fountain, is_best_trail);
                     }
@@ -83,9 +83,8 @@ impl StateMap {
         }
 
         for pair in &mut self.point_pairs {
-            if !pair.best_in.has_next_state() {
-                let next_fountain = pair.runner_in.next_fountain();
-                let next_took_best_trail = pair.runner_in.next_took_best_trail();
+            if pair.best_in.next_state().is_none() {
+                let (next_fountain, next_took_best_trail) = pair.runner_in.next_state().unwrap();
                 pair.best_in
                     .set_next_state(next_fountain, next_took_best_trail);
             }
@@ -112,7 +111,7 @@ impl StateMap {
             for took_best_trail in [true, false] {
                 states_passed_map.clear();
 
-                if self.point(fountain, took_best_trail).has_can_reach_p() {
+                if self.point(fountain, took_best_trail).found_if_can_reach_p() {
                     continue;
                 }
 
@@ -137,17 +136,14 @@ impl StateMap {
 
                     if self
                         .point(current_fountain, current_took_best_trail)
-                        .has_can_reach_p()
+                        .found_if_can_reach_p()
                     {
-                        if self
+                        if let Some((steps_to_p, p_took_best_trail)) = self
                             .point(current_fountain, current_took_best_trail)
-                            .can_reach_p()
+                            .p_hit_info()
                         {
                             for (state, steps) in states_passed_map.iter() {
-                                let point: &StateMapPoint =
-                                    self.point(current_fountain, current_took_best_trail);
-                                let steps = step_counter - steps + point.steps_to_p();
-                                let p_took_best_trail = point.p_took_best_trail();
+                                let steps = step_counter - steps + steps_to_p;
                                 self.point_state_mut(state)
                                     .set_p_hit_info(steps, p_took_best_trail);
                             }
@@ -170,17 +166,13 @@ impl StateMap {
 
                     states_passed_map.insert(current_state, step_counter);
 
-                    let next_fountain = self
+                    (current_fountain, current_took_best_trail) = self
                         .point(current_fountain, current_took_best_trail)
-                        .next_fountain();
-                    let next_took_best_trail = self
-                        .point(current_fountain, current_took_best_trail)
-                        .next_took_best_trail();
-
-                    current_fountain = next_fountain;
-                    current_took_best_trail = next_took_best_trail;
+                        .next_state()
+                        .expect("the point must have been given a next_state already");
 
                     step_counter += 1;
+                    assert!(step_counter <= 300_000);
                 }
             }
         }

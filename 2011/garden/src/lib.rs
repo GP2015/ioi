@@ -102,34 +102,25 @@ fn solve(state_map: StateMap, n: u32, p: u32, q: u16, g: GF) {
         for starting_fountain in 0..n {
             let point = state_map.point(starting_fountain, false);
 
-            if !point.has_p_hit_info() {
+            let Some((steps_to_p, p_took_best_trail)) = point.p_hit_info() else {
                 continue;
-            }
-
-            let steps_to_p = point.steps_to_p();
+            };
 
             if steps < steps_to_p {
                 continue;
             }
 
-            let p_took_best_trail = point.p_took_best_trail();
-
             let p_point = state_map.point(p, p_took_best_trail);
 
-            if !p_point.has_p_hit_info() {
+            let Some((steps_to_p2, p2_took_best_trail)) = p_point.p_hit_info() else {
                 if steps == steps_to_p {
                     number_of_routes += 1;
                 }
                 continue;
-            }
-
-            let steps_to_p2 = p_point.steps_to_p();
-
-            let p2_took_best_trail = p_point.p_took_best_trail();
+            };
 
             if p_took_best_trail == p2_took_best_trail {
                 let steps_dif = steps - steps_to_p;
-
                 if steps_dif.is_multiple_of(steps_to_p2) || steps_to_p2 == 0 {
                     number_of_routes += 1;
                 }
@@ -145,16 +136,12 @@ fn solve(state_map: StateMap, n: u32, p: u32, q: u16, g: GF) {
 
             let p2_point = state_map.point(p, p2_took_best_trail);
 
-            if !p2_point.has_p_hit_info() {
+            let Some((steps_to_p3, p3_took_best_trail)) = p2_point.p_hit_info() else {
                 if steps == steps_to_p || steps == steps_to_p2 {
                     number_of_routes += 1;
                 }
                 continue;
-            }
-
-            let steps_to_p3 = p2_point.steps_to_p();
-
-            let p3_took_best_trail = p2_point.p_took_best_trail();
+            };
 
             if p2_took_best_trail == p3_took_best_trail {
                 if steps == steps_to_p {
