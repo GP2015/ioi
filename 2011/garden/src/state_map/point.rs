@@ -27,7 +27,6 @@ impl StateMapPoint {
     }
 
     pub fn set_next_state(&mut self, next_fountain: u32, next_took_best_trail: bool) {
-        assert!(next_fountain < 150_000);
         self.next_state = Some((next_fountain, next_took_best_trail));
     }
 
@@ -36,7 +35,6 @@ impl StateMapPoint {
     }
 
     pub fn set_p_hit_info(&mut self, steps_to_p: u32, p_took_best_trail: bool) {
-        assert!(steps_to_p <= 300_000);
         self.found_if_can_reach_p = true;
         self.p_hit_info = Some((steps_to_p, p_took_best_trail));
     }

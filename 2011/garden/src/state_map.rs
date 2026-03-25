@@ -89,19 +89,6 @@ impl StateMap {
                     .set_next_state(next_fountain, next_took_best_trail);
             }
         }
-
-        // for fountain in 0..self.point_pairs.len() {
-        //     for took_best_trail in [true, false] {
-        //         let point = self.point(fountain as u32, took_best_trail);
-        //         println!(
-        //             "({}, {}), ({}, {})",
-        //             fountain,
-        //             took_best_trail,
-        //             point.next_fountain(),
-        //             point.next_took_best_trail()
-        //         );
-        //     }
-        // }
     }
 
     pub fn add_distances_to_p(&mut self, n: u32, p: u32) {
@@ -176,21 +163,5 @@ impl StateMap {
                 }
             }
         }
-
-        // for fountain in 0..self.point_pairs.len() {
-        //     for took_best_trail in [true, false] {
-        //         let point = self.point(fountain as u32, took_best_trail);
-        //         println!(
-        //             "({}, {}), {}, {}, {}, {}, {}",
-        //             fountain,
-        //             took_best_trail,
-        //             point.has_can_reach_p(),
-        //             point.can_reach_p(),
-        //             point.has_p_hit_info(),
-        //             point.steps_to_p(),
-        //             point.p_took_best_trail(),
-        //         );
-        //     }
-        // }
     }
 }
