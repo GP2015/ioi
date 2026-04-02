@@ -18,10 +18,6 @@ unsafe extern "C" {
 /// * `r` must point to an array that is twice as long as length `m`.
 ///
 /// * `g` must point to an array of length `q`.
-///
-/// * `n`, `m`, `p`, and `q`cannot be null.
-///
-/// * The arrays at `r` and `g` cannot contain null.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn count_routes(
     n: c_int,

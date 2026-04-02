@@ -9,12 +9,8 @@ use std::ffi::c_int;
 /// * `h` must point to an array that is twice as long as length `n`.
 ///
 /// * `l` must point to an array of length `n`.
-///
-/// * `n` and `k` cannot be null.
-///
-/// * The arrays at `h` and `l` cannot contain null.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn best_path(n: c_int, k: c_int, h: *const c_int, l: *const c_int) -> i32 {
+pub unsafe extern "C" fn best_path(n: c_int, k: c_int, h: *const c_int, l: *const c_int) -> c_int {
     assert!((1..=200_000).contains(&n));
     assert!((1..=1_000_000).contains(&k));
 
