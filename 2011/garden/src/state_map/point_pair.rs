@@ -1,9 +1,8 @@
 use crate::state_map::point::StateMapPoint;
 
-#[derive(Clone)]
 pub struct StateMapPointPair {
-    pub best_in: StateMapPoint,
-    pub runner_in: StateMapPoint,
+    best_in: StateMapPoint,
+    runner_in: StateMapPoint,
 }
 
 impl StateMapPointPair {
@@ -12,6 +11,22 @@ impl StateMapPointPair {
             best_in: StateMapPoint::new(),
             runner_in: StateMapPoint::new(),
         }
+    }
+
+    pub fn best_in(&self) -> &StateMapPoint {
+        &self.best_in
+    }
+
+    pub fn best_in_mut(&mut self) -> &mut StateMapPoint {
+        &mut self.best_in
+    }
+
+    pub fn runner_in(&self) -> &StateMapPoint {
+        &self.runner_in
+    }
+
+    pub fn runner_in_mut(&mut self) -> &mut StateMapPoint {
+        &mut self.runner_in
     }
 
     pub fn point(&self, took_best_trail: bool) -> &StateMapPoint {

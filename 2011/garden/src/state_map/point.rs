@@ -1,8 +1,17 @@
-#[derive(Clone)]
 pub struct StateMapPoint {
     next_state: Option<(u32, bool)>,
     found_if_can_reach_p: bool,
     p_hit_info: Option<(u32, bool)>,
+}
+
+impl StateMapPoint {
+    pub fn next_state(&self) -> Option<(u32, bool)> {
+        self.next_state
+    }
+
+    pub fn set_next_state(&mut self, next_fountain: u32, next_took_best_trail: bool) {
+        self.next_state = Some((next_fountain, next_took_best_trail));
+    }
 }
 
 impl StateMapPoint {
@@ -14,20 +23,12 @@ impl StateMapPoint {
         }
     }
 
-    pub fn next_state(&self) -> Option<(u32, bool)> {
-        self.next_state
-    }
-
     pub fn found_if_can_reach_p(&self) -> bool {
         self.found_if_can_reach_p
     }
 
     pub fn p_hit_info(&self) -> Option<(u32, bool)> {
         self.p_hit_info
-    }
-
-    pub fn set_next_state(&mut self, next_fountain: u32, next_took_best_trail: bool) {
-        self.next_state = Some((next_fountain, next_took_best_trail));
     }
 
     pub fn set_cannot_reach_p(&mut self) {
