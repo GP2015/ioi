@@ -1,3 +1,4 @@
+mod check;
 mod passed_map;
 mod state;
 mod state_map;
@@ -38,28 +39,27 @@ pub unsafe extern "C" fn count_routes(
     q: c_int,
     g: *const c_int,
 ) {
-    assert!((2..=150_000).contains(&n));
-    assert!((1..=150_000).contains(&m));
-    assert!((0..=149_999).contains(&p));
-    assert!((1..=2_000).contains(&q));
+    assert!((2..150_001).contains(&n));
+    assert!((1..150_001).contains(&m));
+    assert!((0..150_000).contains(&p));
+    assert!((1..2_001).contains(&q));
 
     let r = unsafe { std::slice::from_raw_parts(r, m as usize * 2) };
     let g = unsafe { std::slice::from_raw_parts(g, q as usize) };
 
     #[cfg(not(feature = "par"))]
     {
-        r.iter()
-            .for_each(|val| assert!((0..=149_999).contains(val)));
+        r.iter().for_each(|val| assert!((0..150_000).contains(val)));
         g.iter()
-            .for_each(|val| assert!((1..=1_000_000_000).contains(val)));
+            .for_each(|val| assert!((1..1_000_000_001).contains(val)));
     }
 
     #[cfg(feature = "par")]
     {
         r.par_iter()
-            .for_each(|val| assert!((0..=149_999).contains(val)));
+            .for_each(|val| assert!((0..150_000).contains(val)));
         g.par_iter()
-            .for_each(|val| assert!((1..=1_000_000_000).contains(val)));
+            .for_each(|val| assert!((1..1_000_000_001).contains(val)));
     }
 
     let (r, _) = r.as_chunks::<2>();
@@ -77,8 +77,8 @@ pub unsafe extern "C" fn count_routes(
     println!("Memory: {} MB", PEAK_ALLOC.peak_usage_as_mb());
 }
 
-fn call_answer(x: i32) {
-    unsafe { answer(x) };
+fn call_answer(x: usize) {
+    unsafe { answer(x as i32) };
 }
 
 struct RF<'a> {
@@ -118,8 +118,8 @@ fn count_routes_safe(n: u32, m: u32, p: u32, r: RF, q: u16, g: GF) {
 fn solve(state_map: StateMap, n: u32, p: u32, q: u16, g: GF) {
     for group in 0..q {
         let steps = g.get(group);
-        let mut number_of_routes = 0;
 
+        let mut number_of_routes = 0;
         for starting_fountain in 0..n {
             if state_reaches_p_in_steps(&state_map, starting_fountain, steps, p) {
                 number_of_routes += 1;
@@ -138,12 +138,12 @@ fn solve(state_map: StateMap, n: u32, p: u32, q: u16, g: GF) {
             let steps = g.get(group);
             (0..n)
                 .into_par_iter()
-                .map(|starting_fountain| {
-                    state_reaches_p_in_steps(&state_map, starting_fountain, steps, p) as i32
+                .filter(|&starting_fountain| {
+                    state_reaches_p_in_steps(&state_map, starting_fountain, steps, p)
                 })
-                .sum::<i32>()
+                .count()
         })
-        .collect::<Vec<i32>>()
+        .collect::<Vec<usize>>()
         .into_iter()
         .for_each(call_answer);
 }

@@ -6,4 +6,4 @@
 /subtask3
 /target
 *.exe
-*.ps1
+justfile

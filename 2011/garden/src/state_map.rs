@@ -2,7 +2,7 @@ mod point;
 mod point_pair;
 
 use crate::{
-    RF,
+    RF, check,
     passed_map::StatesPassedMap,
     state,
     state_map::{point::StateMapPoint, point_pair::StateMapPointPair},
@@ -28,11 +28,16 @@ impl StateMap {
     }
 
     fn point_state_mut(&mut self, state: u32) -> &mut StateMapPoint {
+        check::state(state);
         self.point_pairs[state::to_fountain(state) as usize]
             .point_mut(state::to_took_best_trail(state))
     }
 
     pub fn from(n: u32, m: u32, p: u32, r: RF) -> Self {
+        check::n(n);
+        check::m(m);
+        check::fountain(p);
+
         let mut map = Self {
             point_pairs: (0..n).map(|_| StateMapPointPair::new()).collect(),
         };
@@ -49,6 +54,8 @@ impl StateMap {
             for side in 0..2 {
                 let current_fountain = r.get(trail, side);
                 let next_fountain = r.get(trail, 1 - side);
+                check::fountain(current_fountain);
+                check::fountain(next_fountain);
 
                 if self.best_in(current_fountain).next_state().is_some() {
                     continue;
@@ -184,7 +191,6 @@ impl StateMap {
                 .expect("the point must have been given a next_state already");
 
             step_counter += 1;
-            assert!(step_counter <= 300_000);
         }
     }
 }
