@@ -138,10 +138,10 @@ impl StateMap {
         let mut current_took_best_trail = took_best_trail;
 
         let mut step_counter = 0;
-        let mut check_for_p = false;
+        let mut check_if_p = false;
 
         loop {
-            if check_for_p && current_fountain == p {
+            if check_if_p && current_fountain == p {
                 for (state, step_count) in states_passed_map.iter() {
                     let steps = step_counter - step_count;
                     let p_took_best_trail = current_took_best_trail;
@@ -151,7 +151,7 @@ impl StateMap {
                 break;
             }
 
-            check_for_p = true;
+            check_if_p = true;
 
             if self
                 .point(current_fountain, current_took_best_trail)
