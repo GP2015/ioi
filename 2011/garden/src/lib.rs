@@ -6,11 +6,11 @@ use std::ffi::c_int;
 #[cfg(feature = "par")]
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
-#[cfg(feature = "memtrack")]
+#[cfg(feature = "mem")]
 #[global_allocator]
 static PEAK_ALLOC: peak_alloc::PeakAlloc = peak_alloc::PeakAlloc;
 
-#[cfg(not(feature = "memtrack"))]
+#[cfg(not(feature = "mem"))]
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
@@ -70,7 +70,7 @@ pub unsafe extern "C" fn count_routes(
         GF::from(g),
     );
 
-    #[cfg(feature = "memtrack")]
+    #[cfg(feature = "mem")]
     println!("Memory: {} MB", PEAK_ALLOC.peak_usage_as_mb());
 }
 

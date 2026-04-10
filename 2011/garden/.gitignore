@@ -6,4 +6,5 @@
 /subtask3
 /target
 *.exe
+*.asm
 justfile
