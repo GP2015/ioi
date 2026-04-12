@@ -7,21 +7,23 @@ use crate::{
     solution::state_map::StateMap,
 };
 #[cfg(feature = "par")]
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
 
-pub fn count_routes_safe(n: u32, m: u32, p: u32, r: RF, q: u16, g: GF) {
+// #[no_panic::no_panic]
+pub fn count_routes_safe(n: u32, m: u32, p: u32, r: &RF, q: u16, g: &GF) {
     let state_map = StateMap::from(n, m, p, r);
-    solve(state_map, n, p, q, g);
+    solve(&state_map, n, p, q, g);
 }
 
 #[cfg(not(feature = "par"))]
-fn solve(state_map: StateMap, n: u32, p: u32, q: u16, g: GF) {
+// #[no_panic::no_panic]
+fn solve(state_map: &StateMap, n: u32, p: u32, q: u16, g: &GF) {
     for group in 0..q {
         let steps = g.get(group);
 
         let mut number_of_routes = 0;
         for starting_fountain in 0..n {
-            if state_reaches_p_in_steps(&state_map, starting_fountain, steps, p) {
+            if state_reaches_p_in_steps(state_map, starting_fountain, steps, p) {
                 number_of_routes += 1;
             }
         }
@@ -31,7 +33,8 @@ fn solve(state_map: StateMap, n: u32, p: u32, q: u16, g: GF) {
 }
 
 #[cfg(feature = "par")]
-fn solve(state_map: StateMap, n: u32, p: u32, q: u16, g: GF) {
+#[no_panic::no_panic]
+fn solve(state_map: &StateMap, n: u32, p: u32, q: u16, g: &GF) {
     (0..q)
         .into_par_iter()
         .map(|group| {
@@ -39,7 +42,7 @@ fn solve(state_map: StateMap, n: u32, p: u32, q: u16, g: GF) {
             (0..n)
                 .into_par_iter()
                 .filter(|&starting_fountain| {
-                    state_reaches_p_in_steps(&state_map, starting_fountain, steps, p)
+                    state_reaches_p_in_steps(state_map, starting_fountain, steps, p)
                 })
                 .count()
         })
@@ -48,6 +51,7 @@ fn solve(state_map: StateMap, n: u32, p: u32, q: u16, g: GF) {
         .for_each(crate::call_answer);
 }
 
+// #[no_panic::no_panic]
 fn state_reaches_p_in_steps(
     state_map: &StateMap,
     starting_fountain: u32,

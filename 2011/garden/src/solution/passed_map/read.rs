@@ -10,6 +10,7 @@ pub struct StatesPassedMapRead {
 }
 
 impl StatesPassedMapRead {
+    #[no_panic::no_panic]
     pub fn from(state: State, steps: u32) -> Self {
         Self { state, steps }
     }

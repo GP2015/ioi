@@ -13,7 +13,7 @@ use crate::{
 };
 use delegate::delegate;
 #[cfg(feature = "par")]
-use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
+use rayon::iter::{IntoParallelRefMutIterator as _, ParallelIterator as _};
 
 pub struct StateMap {
     point_pairs: Vec<StateMapPointPair>,
@@ -22,24 +22,33 @@ pub struct StateMap {
 impl StateMap {
     delegate! {
         to |fountain: u32| self.point_pairs[fountain as usize]{
+            // #[no_panic::no_panic]
             fn best_in(&self) -> &StateMapPoint;
+            #[no_panic::no_panic]
             fn best_in_mut(&mut self) -> &mut StateMapPoint;
+            // #[no_panic::no_panic]
             fn runner_in(&self) -> &StateMapPoint;
+            #[no_panic::no_panic]
             fn runner_in_mut(&mut self) -> &mut StateMapPoint;
+            // #[no_panic::no_panic]
             pub fn point(&self, took_best_trail: bool) -> &StateMapPoint;
+            #[no_panic::no_panic]
             fn point_mut(&mut self, took_best_trail: bool) -> &mut StateMapPoint;
         }
     }
 
+    // #[no_panic::no_panic]
     fn point_state(&self, state: State) -> &StateMapPoint {
         self.point_pairs[state.fountain() as usize].point(state.took_best_trail())
     }
 
+    // #[no_panic::no_panic]
     fn point_state_mut(&mut self, state: State) -> &mut StateMapPoint {
         self.point_pairs[state.fountain() as usize].point_mut(state.took_best_trail())
     }
 
-    pub fn from(n: u32, m: u32, p: u32, r: RF) -> Self {
+    // #[no_panic::no_panic]
+    pub fn from(n: u32, m: u32, p: u32, r: &RF) -> Self {
         let mut map = Self {
             point_pairs: vec![StateMapPointPair::new(); n as usize],
         };
@@ -51,11 +60,12 @@ impl StateMap {
         map
     }
 
-    fn add_next_states(&mut self, m: u32, r: RF) {
+    // #[no_panic::no_panic]
+    fn add_next_states(&mut self, m: u32, r: &RF) {
         for trail in 0..m {
-            for side in 0..2 {
+            for side in [false, true] {
                 let current_fountain = r.get(trail, side);
-                let next_fountain = r.get(trail, 1 - side);
+                let next_fountain = r.get(trail, !side);
 
                 if self.best_in(current_fountain).next_state().is_some() {
                     continue;
@@ -88,25 +98,34 @@ impl StateMap {
     }
 
     #[cfg(not(feature = "par"))]
+    // #[no_panic::no_panic]
     fn add_return_states(&mut self) {
         for pair in &mut self.point_pairs {
             if pair.best_in().next_state().is_none() {
-                let state = pair.runner_in().next_state().unwrap();
+                let state = pair
+                    .runner_in()
+                    .next_state()
+                    .expect("all states have at least one path in, so best_in is defined");
                 pair.best_in_mut().set_next_state(state);
             }
         }
     }
 
     #[cfg(feature = "par")]
+    // #[no_panic::no_panic]
     fn add_return_states(&mut self) {
         self.point_pairs.par_iter_mut().for_each(|pair| {
             if pair.best_in().next_state().is_none() {
-                let next_state = pair.runner_in().next_state().unwrap();
+                let next_state = pair
+                    .runner_in()
+                    .next_state()
+                    .expect("all states have at least one path in, so best_in is defined");
                 pair.best_in_mut().set_next_state(next_state);
             }
-        })
+        });
     }
 
+    // #[no_panic::no_panic]
     fn add_distances_to_p(&mut self, n: u32, p: u32) {
         let mut states_passed_map = StatesPassedMap::new(n);
 
@@ -121,6 +140,7 @@ impl StateMap {
         }
     }
 
+    // #[no_panic::no_panic]
     fn add_distance_to_p_of_state(
         &mut self,
         mut current_state: State,
@@ -178,7 +198,7 @@ impl StateMap {
             current_state = self
                 .point_state(current_state)
                 .next_state()
-                .expect("the point must have been given a next_state already");
+                .expect("all states have had their next states set");
 
             step_counter += 1;
         }
