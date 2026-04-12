@@ -5,3 +5,10 @@ edition = "2024"
 
 [lib]
 crate-type = ["staticlib"]
+
+[dependencies]
+getset = "0.1.6"
+peak_alloc = { version = "0.3.0", optional = true }
+
+[features]
+mem = ["dep:peak_alloc"]

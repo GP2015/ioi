@@ -1,0 +1,37 @@
+lib_path := "target/release/race.lib"
+include_flags := "-lpsapi -lshell32 -luser32 -ladvapi32 -lbcrypt -llegacy_stdio_definitions -lkernel32 -lntdll -luserenv -lws2_32 -ldbghelp"
+c_build_ops := "-O3 -flto -O3 -fuse-ld=lld -march=native"
+
+default: build
+
+build-rust *features:
+    RUSTFLAGS="-C target-cpu=native" cargo rustc --release \
+    {{ if features == "" { "" } else { "--features " + replace(features, " ", ",") } }} \
+build-c *features: (build-rust features)
+    clang {{c_build_ops}} c_src/grader.c -Iinclude/ {{lib_path}} -o main.exe {{include_flags}}
+build *features: (build-c features)
+    echo "Build finished successfully."
+
+run folder num_tests *features: (build features)
+    for i in $(seq 1 {{num_tests}}); do \
+        file="{{folder}}/grader.in.$i"; \
+        if [ -f "$file" ]; then cat "$file" | ./main.exe; \
+        else echo "Test file grader.in.$i not found in {{folder}}"; \
+        fi; \
+    done
+
+run-sample *features: (run "sample" "3" features)
+run-sub1 *features: (run "subtask1" "18" features)
+run-sub2 *features: (run "subtask2" "20" features)
+run-sub3 *features: (run "subtask3" "16" features)
+run-sub4 *features: (run "subtask4" "16" features)
+
+asm *features:
+    RUSTFLAGS="-C target-cpu=native" cargo asm --release \
+    {{ if features == "" { "" } else { "--features " + replace(features, " ", ",") } }} \
+    --rust --simplify best_path > best_path.asm
+    echo "Output written to best_path.asm"
+
+clean:
+    cargo clean
+    rm -f main.exe best_path.asm
