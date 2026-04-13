@@ -1,5 +1,5 @@
 #![warn(clippy::pedantic)]
-#![warn(clippy::indexing_slicing)]
+#![warn(clippy::undocumented_unsafe_blocks)]
 #![allow(clippy::many_single_char_names)]
 #![allow(clippy::similar_names)]
 #![allow(clippy::cast_sign_loss)]
@@ -33,8 +33,11 @@ unsafe extern "C" {
 /// * `r` must point to an array that is twice as long as length `m`.
 ///
 /// * `g` must point to an array of length `q`.
+///
+/// # Panics
+///
+/// May panic if the provided input data does not follow the specification.
 #[unsafe(no_mangle)]
-// #[no_panic::no_panic]
 pub unsafe extern "C" fn count_routes(
     n: c_int,
     m: c_int,
@@ -48,10 +51,10 @@ pub unsafe extern "C" fn count_routes(
     assert!((0..150_000).contains(&p));
     assert!((1..2_001).contains(&q));
 
-    // Safety: Assuming that `r` points to an array that is twice as long as length `m`.
+    // Safety: `r` must point to an array that is twice as long as length `m`.
     let r = unsafe { slice::from_raw_parts(r, m as usize * 2) };
 
-    // Safety: Assuming that `g` points to an array of length `q`.
+    // Safety: `g` must point to an array of length `q`.
     let g = unsafe { slice::from_raw_parts(g, q as usize) };
 
     for val in r {
@@ -77,7 +80,6 @@ pub unsafe extern "C" fn count_routes(
     println!("Memory: {} MB", PEAK_ALLOC.peak_usage_as_mb());
 }
 
-#[no_panic::no_panic]
 fn call_answer(x: usize) {
     answer(x as i32);
 }

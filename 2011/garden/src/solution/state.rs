@@ -9,7 +9,7 @@ pub struct State {
 }
 
 impl State {
-    #[no_panic::no_panic]
+    
     pub fn from(fountain: u32, took_best_trail: bool) -> Self {
         Self {
             fountain,
@@ -17,7 +17,7 @@ impl State {
         }
     }
 
-    #[no_panic::no_panic]
+    
     pub fn id(self) -> usize {
         ((self.fountain as usize) << 1) | usize::from(self.took_best_trail)
     }

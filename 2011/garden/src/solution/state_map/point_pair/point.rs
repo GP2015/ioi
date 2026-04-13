@@ -14,7 +14,7 @@ pub struct StateMapPoint {
 }
 
 impl StateMapPoint {
-    #[no_panic::no_panic]
+    
     pub fn new() -> Self {
         Self {
             next_state: None,
@@ -23,17 +23,17 @@ impl StateMapPoint {
         }
     }
 
-    #[no_panic::no_panic]
+    
     pub fn set_next_state(&mut self, next_state: State) {
         self.next_state = Some(next_state);
     }
 
-    #[no_panic::no_panic]
+    
     pub fn set_cannot_reach_p(&mut self) {
         self.found_if_can_reach_p = true;
     }
 
-    #[no_panic::no_panic]
+    
     pub fn set_p_hit_info(&mut self, p_hit_info: PHitInfo) {
         self.found_if_can_reach_p = true;
         self.p_hit_info = Some(p_hit_info);
