@@ -1,4 +1,4 @@
-use core::hint;
+use std::hint;
 
 use getset::CopyGetters;
 use no_panic::no_panic;

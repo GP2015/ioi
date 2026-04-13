@@ -1,7 +1,7 @@
 pub mod p_hit_info;
 
 use crate::solution::{state::State, state_map::point_pair::point::p_hit_info::PHitInfo};
-use core::hint;
+use std::hint;
 use getset::{CopyGetters, Setters};
 use no_panic::no_panic;
 

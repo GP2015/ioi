@@ -8,7 +8,7 @@ use crate::solution::{
         point::{StateMapPoint, p_hit_info::PHitInfo},
     },
 };
-use core::hint;
+use std::hint;
 use delegate::delegate;
 use no_panic::no_panic;
 #[cfg(feature = "par")]

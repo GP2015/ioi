@@ -4,9 +4,7 @@
     clippy::unwrap_used,
     clippy::expect_used,
     clippy::panic,
-    clippy::indexing_slicing,
-    clippy::std_instead_of_core,
-    clippy::std_instead_of_alloc
+    clippy::indexing_slicing
 )]
 #![allow(
     clippy::many_single_char_names,
@@ -18,8 +16,8 @@
 
 mod solution;
 
-use core::{ffi::c_int, hint, slice};
 use no_panic::no_panic;
+use std::{ffi::c_int, hint, slice};
 
 #[cfg(feature = "mem")]
 #[global_allocator]

@@ -1,7 +1,7 @@
 pub mod read;
 
 use crate::solution::{passed_map::read::StatesPassedMapRead, state::State};
-use core::hint;
+use std::hint;
 use no_panic::no_panic;
 
 pub struct StatesPassedMap {
