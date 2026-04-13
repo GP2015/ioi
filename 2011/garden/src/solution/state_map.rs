@@ -22,17 +22,11 @@ pub struct StateMap {
 impl StateMap {
     delegate! {
         to |fountain: u32| self.point_pairs[fountain as usize]{
-
             fn best_in(&self) -> &StateMapPoint;
-
             fn best_in_mut(&mut self) -> &mut StateMapPoint;
-
             fn runner_in(&self) -> &StateMapPoint;
-
             fn runner_in_mut(&mut self) -> &mut StateMapPoint;
-
             pub fn point(&self, took_best_trail: bool) -> &StateMapPoint;
-
             fn point_mut(&mut self, took_best_trail: bool) -> &mut StateMapPoint;
         }
     }
@@ -41,7 +35,6 @@ impl StateMap {
         self.point_pairs[state.fountain() as usize].point(state.took_best_trail())
     }
 
-    // #[no_panic::no_panicpoint_state_mut]
     fn point_state_mut(&mut self, state: State) -> &mut StateMapPoint {
         self.point_pairs[state.fountain() as usize].point_mut(state.took_best_trail())
     }
@@ -98,10 +91,9 @@ impl StateMap {
     fn add_return_states(&mut self) {
         for pair in &mut self.point_pairs {
             if pair.best_in().next_state().is_none() {
-                let state = pair
-                    .runner_in()
-                    .next_state()
-                    .expect("all states have at least one path in, so best_in is defined");
+                let state = pair.runner_in().next_state().expect(
+                    "all fountains should have at least one path in, so runner_in is defined",
+                );
                 pair.best_in_mut().set_next_state(state);
             }
         }
@@ -111,10 +103,9 @@ impl StateMap {
     fn add_return_states(&mut self) {
         self.point_pairs.par_iter_mut().for_each(|pair| {
             if pair.best_in().next_state().is_none() {
-                let next_state = pair
-                    .runner_in()
-                    .next_state()
-                    .expect("all states have at least one path in, so best_in is defined");
+                let next_state = pair.runner_in().next_state().expect(
+                    "all fountains should have at least one path in, so runner_in is defined",
+                );
                 pair.best_in_mut().set_next_state(next_state);
             }
         });
@@ -191,7 +182,7 @@ impl StateMap {
             current_state = self
                 .point_state(current_state)
                 .next_state()
-                .expect("all states have had their next states set");
+                .expect("all states have had their next states set already");
 
             step_counter += 1;
         }

@@ -20,7 +20,7 @@ impl StatesPassedMap {
             StatesPassedMapRead::from(
                 state,
                 self.steps_data[state.id()]
-                    .expect("since this index exists in 'states', it must not be None"),
+                    .expect("since its index exists in 'states', it cannot hold None"),
             )
         })
     }

@@ -1,10 +1,16 @@
-#![warn(clippy::pedantic)]
-#![warn(clippy::undocumented_unsafe_blocks)]
-#![allow(clippy::many_single_char_names)]
-#![allow(clippy::similar_names)]
-#![allow(clippy::cast_sign_loss)]
-#![allow(clippy::cast_possible_truncation)]
-#![allow(clippy::cast_possible_wrap)]
+#![warn(
+    clippy::pedantic,
+    clippy::undocumented_unsafe_blocks,
+    clippy::unwrap_used,
+    clippy::panic
+)]
+#![allow(
+    clippy::many_single_char_names,
+    clippy::similar_names,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap
+)]
 
 mod array_readers;
 mod solution;
