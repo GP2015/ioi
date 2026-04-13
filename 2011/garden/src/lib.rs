@@ -2,7 +2,8 @@
     clippy::pedantic,
     clippy::undocumented_unsafe_blocks,
     clippy::unwrap_used,
-    clippy::panic
+    clippy::panic,
+    clippy::indexing_slicing
 )]
 #![allow(
     clippy::many_single_char_names,
@@ -59,27 +60,16 @@ pub unsafe extern "C" fn count_routes(
 
     // Safety: `r` must point to an array that is twice as long as length `m`.
     let r = unsafe { slice::from_raw_parts(r, m as usize * 2) };
+    let (r, _) = r.as_chunks::<2>();
 
     // Safety: `g` must point to an array of length `q`.
     let g = unsafe { slice::from_raw_parts(g, q as usize) };
 
-    for val in r {
-        assert!((0..150_000).contains(val));
-    }
-
-    for val in g {
-        assert!((1..1_000_000_001).contains(val));
-    }
-
-    let (r, _) = r.as_chunks::<2>();
-
     solution::count_routes_safe(
         n as u32,
-        m as u32,
         p as u32,
-        &RF::from(r),
-        q as u16,
-        &GF::from(g),
+        &RF::from(r, m as usize),
+        &GF::from(g, q as usize),
     );
 
     #[cfg(feature = "mem")]

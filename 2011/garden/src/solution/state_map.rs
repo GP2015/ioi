@@ -16,10 +16,14 @@ use delegate::delegate;
 use rayon::iter::{IntoParallelRefMutIterator as _, ParallelIterator as _};
 
 pub struct StateMap {
-    point_pairs: Vec<StateMapPointPair>,
+    point_pairs: Box<[StateMapPointPair]>,
 }
 
 impl StateMap {
+    pub fn n(&self) -> u32 {
+        self.point_pairs.len() as u32
+    }
+
     delegate! {
         to |fountain: u32| self.point_pairs[fountain as usize]{
             fn best_in(&self) -> &StateMapPoint;
@@ -39,52 +43,53 @@ impl StateMap {
         self.point_pairs[state.fountain() as usize].point_mut(state.took_best_trail())
     }
 
-    pub fn from(n: u32, m: u32, p: u32, r: &RF) -> Self {
+    pub fn from(n: u32, p: u32, r: &RF) -> Self {
         let mut map = Self {
-            point_pairs: vec![StateMapPointPair::new(); n as usize],
+            point_pairs: vec![StateMapPointPair::new(); n as usize].into_boxed_slice(),
         };
 
-        map.add_next_states(m, r);
+        map.add_next_states(r);
         map.add_return_states();
-        map.add_distances_to_p(n, p);
+        map.add_distances_to_p(p);
 
         map
     }
 
-    fn add_next_states(&mut self, m: u32, r: &RF) {
-        for trail in 0..m {
-            for side in [false, true] {
-                let current_fountain = r.get(trail, side);
-                let next_fountain = r.get(trail, !side);
-
-                if self.best_in(current_fountain).next_state().is_some() {
-                    continue;
-                }
-
-                let took_best_trail = self.runner_in(current_fountain).next_state().is_none();
-                let next_took_best_trail;
-
-                if self.runner_in(next_fountain).next_state().is_some() {
-                    next_took_best_trail = false;
-
-                    if self.best_in(next_fountain).next_state().is_none() {
-                        let state = State::from(current_fountain, took_best_trail);
-                        self.best_in_mut(next_fountain).set_next_state(state);
-                    }
-                } else {
-                    next_took_best_trail = true;
-
-                    let state = State::from(current_fountain, took_best_trail);
-                    self.runner_in_mut(next_fountain).set_next_state(state);
-                }
-
-                let state = State::from(next_fountain, next_took_best_trail);
-                self.point_mut(current_fountain, !took_best_trail)
-                    .set_next_state(state);
-
-                break;
+    fn add_next_states(&mut self, r: &RF) {
+        for (current_fountain, next_fountain) in r.iter() {
+            if self.add_next_state(current_fountain, next_fountain) {
+                self.add_next_state(next_fountain, current_fountain);
             }
         }
+    }
+
+    fn add_next_state(&mut self, current_fountain: u32, next_fountain: u32) -> bool {
+        if self.best_in(current_fountain).next_state().is_some() {
+            return true;
+        }
+
+        let took_best_trail = self.runner_in(current_fountain).next_state().is_none();
+        let next_took_best_trail;
+
+        if self.runner_in(next_fountain).next_state().is_some() {
+            next_took_best_trail = false;
+
+            if self.best_in(next_fountain).next_state().is_none() {
+                let state = State::from(current_fountain, took_best_trail);
+                self.best_in_mut(next_fountain).set_next_state(state);
+            }
+        } else {
+            next_took_best_trail = true;
+
+            let state = State::from(current_fountain, took_best_trail);
+            self.runner_in_mut(next_fountain).set_next_state(state);
+        }
+
+        let state = State::from(next_fountain, next_took_best_trail);
+        self.point_mut(current_fountain, !took_best_trail)
+            .set_next_state(state);
+
+        false
     }
 
     #[cfg(not(feature = "par"))]
@@ -111,10 +116,10 @@ impl StateMap {
         });
     }
 
-    fn add_distances_to_p(&mut self, n: u32, p: u32) {
-        let mut states_passed_map = StatesPassedMap::new(n);
+    fn add_distances_to_p(&mut self, p: u32) {
+        let mut states_passed_map = StatesPassedMap::new(self.n());
 
-        for fountain in 0..n {
+        for fountain in 0..self.n() {
             for took_best_trail in [true, false] {
                 self.add_distance_to_p_of_state(
                     State::from(fountain, took_best_trail),
