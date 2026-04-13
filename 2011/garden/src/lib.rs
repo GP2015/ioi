@@ -1,11 +1,12 @@
-#![no_std]
 #![warn(
     clippy::pedantic,
     clippy::undocumented_unsafe_blocks,
     clippy::unwrap_used,
     clippy::expect_used,
     clippy::panic,
-    clippy::indexing_slicing
+    clippy::indexing_slicing,
+    clippy::std_instead_of_core,
+    clippy::std_instead_of_alloc
 )]
 #![allow(
     clippy::many_single_char_names,
@@ -14,8 +15,6 @@
     clippy::cast_possible_truncation,
     clippy::cast_possible_wrap
 )]
-
-extern crate alloc;
 
 mod solution;
 

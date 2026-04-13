@@ -3,8 +3,6 @@ mod state;
 mod state_map;
 
 use crate::solution::state_map::StateMap;
-#[cfg(feature = "par")]
-use alloc::vec::Vec;
 use no_panic::no_panic;
 #[cfg(feature = "par")]
 use rayon::iter::{IntoParallelIterator as _, IntoParallelRefIterator as _, ParallelIterator as _};

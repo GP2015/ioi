@@ -20,6 +20,5 @@ peak_alloc = { version = "0.3.0", optional = true }
 rayon = { version = "1.11.0", optional = true }
 
 [features]
-default = ["par"]
 mem = ["dep:peak_alloc"]
 par = ["dep:rayon"]
