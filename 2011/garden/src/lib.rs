@@ -60,7 +60,7 @@ pub unsafe extern "C" fn count_routes(
     // Safety: g must point to an array of length q.
     let g = unsafe { slice::from_raw_parts(g.cast(), q as usize) };
 
-    // Safety: r and g must be the same size.
+    // Safety: r and g must be the correct size.
     unsafe {
         hint::assert_unchecked(r.len() == m as usize);
         hint::assert_unchecked(g.len() == q as usize);
