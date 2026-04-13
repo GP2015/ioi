@@ -1,5 +1,7 @@
 mod point_pair;
 
+use std::hint;
+
 use crate::{
     RF,
     solution::{
@@ -24,23 +26,44 @@ impl StateMap {
         self.point_pairs.len() as u32
     }
 
+    fn point_pair(&self, fountain: u32) -> &StateMapPointPair {
+        self.point_pairs.get(fountain as usize).unwrap_or_else(|| {
+            // Safety: fountain must be a valid index.
+            unsafe { hint::unreachable_unchecked() }
+        })
+    }
+
+    fn point_pair_mut(&mut self, fountain: u32) -> &mut StateMapPointPair {
+        self.point_pairs
+            .get_mut(fountain as usize)
+            .unwrap_or_else(|| {
+                // Safety: fountain must be a valid index.
+                unsafe { hint::unreachable_unchecked() }
+            })
+    }
+
     delegate! {
-        to |fountain: u32| self.point_pairs[fountain as usize]{
+        to |fountain: u32| self.point_pair(fountain) {
             fn best_in(&self) -> &StateMapPoint;
-            fn best_in_mut(&mut self) -> &mut StateMapPoint;
             fn runner_in(&self) -> &StateMapPoint;
-            fn runner_in_mut(&mut self) -> &mut StateMapPoint;
             pub fn point(&self, took_best_trail: bool) -> &StateMapPoint;
+        }
+
+        to |fountain: u32| self.point_pair_mut(fountain) {
+            fn best_in_mut(&mut self) -> &mut StateMapPoint;
+            fn runner_in_mut(&mut self) -> &mut StateMapPoint;
             fn point_mut(&mut self, took_best_trail: bool) -> &mut StateMapPoint;
         }
     }
 
     fn point_state(&self, state: State) -> &StateMapPoint {
-        self.point_pairs[state.fountain() as usize].point(state.took_best_trail())
+        self.point_pair(state.fountain())
+            .point(state.took_best_trail())
     }
 
     fn point_state_mut(&mut self, state: State) -> &mut StateMapPoint {
-        self.point_pairs[state.fountain() as usize].point_mut(state.took_best_trail())
+        self.point_pair_mut(state.fountain())
+            .point_mut(state.took_best_trail())
     }
 
     pub fn from(n: u32, p: u32, r: &RF) -> Self {
@@ -96,9 +119,10 @@ impl StateMap {
     fn add_return_states(&mut self) {
         for pair in &mut self.point_pairs {
             if pair.best_in().next_state().is_none() {
-                let state = pair.runner_in().next_state().expect(
-                    "all fountains should have at least one path in, so runner_in is defined",
-                );
+                let state = pair.runner_in().next_state().unwrap_or_else(|| {
+                    // Safety: all fountains should have at least one path in, so runner_in is defined.
+                    unsafe { hint::unreachable_unchecked() }
+                });
                 pair.best_in_mut().set_next_state(state);
             }
         }
@@ -108,9 +132,10 @@ impl StateMap {
     fn add_return_states(&mut self) {
         self.point_pairs.par_iter_mut().for_each(|pair| {
             if pair.best_in().next_state().is_none() {
-                let next_state = pair.runner_in().next_state().expect(
-                    "all fountains should have at least one path in, so runner_in is defined",
-                );
+                let next_state = pair.runner_in().next_state().unwrap_or_else(|| {
+                    // Safety: all fountains should have at least one path in, so runner_in is defined.
+                    unsafe { hint::unreachable_unchecked() }
+                });
                 pair.best_in_mut().set_next_state(next_state);
             }
         });
@@ -187,7 +212,10 @@ impl StateMap {
             current_state = self
                 .point_state(current_state)
                 .next_state()
-                .expect("all states have had their next states set already");
+                .unwrap_or_else(|| {
+                    // Safety: all states have had their next states set already.
+                    unsafe { hint::unreachable_unchecked() }
+                });
 
             step_counter += 1;
         }

@@ -6,11 +6,7 @@ pub struct GF<'a> {
 }
 
 impl<'a> GF<'a> {
-    pub fn from(g: &'a [i32], q: usize) -> Self {
-        assert!(g.len() == q);
-        for val in g {
-            assert!((1..1_000_000_001).contains(val));
-        }
+    pub fn from(g: &'a [i32]) -> Self {
         Self { data: g }
     }
 

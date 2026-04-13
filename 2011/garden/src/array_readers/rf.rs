@@ -3,12 +3,7 @@ pub struct RF<'a> {
 }
 
 impl<'a> RF<'a> {
-    pub fn from(r: &'a [[i32; 2]], m: usize) -> Self {
-        assert!(r.len() == m);
-        for row in r {
-            assert!((0..150_000).contains(&row[0]));
-            assert!((0..150_000).contains(&row[1]));
-        }
+    pub fn from(r: &'a [[i32; 2]]) -> Self {
         Self { data: r }
     }
 

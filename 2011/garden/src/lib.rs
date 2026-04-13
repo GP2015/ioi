@@ -2,6 +2,7 @@
     clippy::pedantic,
     clippy::undocumented_unsafe_blocks,
     clippy::unwrap_used,
+    clippy::expect_used,
     clippy::panic,
     clippy::indexing_slicing
 )]
@@ -18,6 +19,7 @@ mod solution;
 
 use crate::array_readers::{gf::GF, rf::RF};
 use core::{ffi::c_int, slice};
+use std::hint;
 
 #[cfg(feature = "mem")]
 #[global_allocator]
@@ -40,10 +42,6 @@ unsafe extern "C" {
 /// * `r` must point to an array that is twice as long as length `m`.
 ///
 /// * `g` must point to an array of length `q`.
-///
-/// # Panics
-///
-/// May panic if the provided input data does not follow the specification.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn count_routes(
     n: c_int,
@@ -53,24 +51,40 @@ pub unsafe extern "C" fn count_routes(
     q: c_int,
     g: *const c_int,
 ) {
-    assert!((2..150_001).contains(&n));
-    assert!((1..150_001).contains(&m));
-    assert!((0..150_000).contains(&p));
-    assert!((1..2_001).contains(&q));
+    // Safety: n, m, p, and q must uphold the specification.
+    unsafe {
+        hint::assert_unchecked((2..150_001).contains(&n));
+        hint::assert_unchecked((1..150_001).contains(&m));
+        hint::assert_unchecked((0..150_000).contains(&p));
+        hint::assert_unchecked((1..2_001).contains(&q));
+    }
 
-    // Safety: `r` must point to an array that is twice as long as length `m`.
+    // Safety: r must point to an array that is twice as long as length m.
     let r = unsafe { slice::from_raw_parts(r, m as usize * 2) };
     let (r, _) = r.as_chunks::<2>();
 
-    // Safety: `g` must point to an array of length `q`.
+    // Safety: g must point to an array of length q.
     let g = unsafe { slice::from_raw_parts(g, q as usize) };
 
-    solution::count_routes_safe(
-        n as u32,
-        p as u32,
-        &RF::from(r, m as usize),
-        &GF::from(g, q as usize),
-    );
+    // Safety: r and g must be the same size.
+    unsafe {
+        hint::assert_unchecked(r.len() == m as usize);
+        hint::assert_unchecked(g.len() == q as usize);
+    }
+
+    // Safety: The values at r and g must uphold the specification.
+    unsafe {
+        for row in r {
+            hint::assert_unchecked((0..150_000).contains(&row[0]));
+            hint::assert_unchecked((0..150_000).contains(&row[1]));
+        }
+
+        for val in g {
+            hint::assert_unchecked((1..1_000_000_001).contains(val));
+        }
+    }
+
+    solution::count_routes_safe(n as u32, p as u32, &RF::from(r), &GF::from(g));
 
     #[cfg(feature = "mem")]
     println!("Memory: {} MB", PEAK_ALLOC.peak_usage_as_mb());

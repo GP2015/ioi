@@ -1,3 +1,5 @@
+use std::hint;
+
 use getset::CopyGetters;
 
 #[derive(Clone, Copy, CopyGetters)]
@@ -18,7 +20,12 @@ impl State {
 
     pub fn id(self, n: u32) -> usize {
         let id = ((self.fountain as usize) << 1) | usize::from(self.took_best_trail);
-        assert!(id < (n as usize * 2));
+
+        // Safety: id cannot be greater than n * 2
+        unsafe {
+            hint::assert_unchecked(id < (n as usize * 2));
+        }
+
         id
     }
 }
