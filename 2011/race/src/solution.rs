@@ -1,11 +1,8 @@
 mod cities;
 
-use crate::{
-    array_readers::{hf::HF, lf::LF},
-    solution::cities::Cities,
-};
+use crate::solution::cities::Cities;
 
-pub fn best_path_safe(n: u32, k: u32, h: HF, l: LF) -> i32 {
+pub fn best_path_safe(n: u32, k: u32, h: &[[u32; 2]], l: &[u32]) -> i32 {
     let cities = Cities::from(n, h, l);
 
     for start_city in 0..n {
