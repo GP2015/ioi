@@ -1,3 +1,4 @@
+#![no_std]
 #![warn(
     clippy::pedantic,
     clippy::undocumented_unsafe_blocks,
@@ -14,12 +15,12 @@
     clippy::cast_possible_wrap
 )]
 
-mod array_readers;
+extern crate alloc;
+
 mod solution;
 
-use crate::array_readers::{gf::GF, rf::RF};
-use core::{ffi::c_int, slice};
-use std::hint;
+use core::{ffi::c_int, hint, slice};
+use no_panic::no_panic;
 
 #[cfg(feature = "mem")]
 #[global_allocator]
@@ -37,11 +38,7 @@ unsafe extern "C" {
 ///
 /// # Safety
 ///
-/// Behaviour is undefined is any of the following conditions are violated:
-///
-/// * `r` must point to an array that is twice as long as length `m`.
-///
-/// * `g` must point to an array of length `q`.
+/// Behaviour is undefined if the parameters do not uphold the specification.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn count_routes(
     n: c_int,
@@ -60,11 +57,11 @@ pub unsafe extern "C" fn count_routes(
     }
 
     // Safety: r must point to an array that is twice as long as length m.
-    let r = unsafe { slice::from_raw_parts(r, m as usize * 2) };
+    let r = unsafe { slice::from_raw_parts(r.cast(), m as usize * 2) };
     let (r, _) = r.as_chunks::<2>();
 
     // Safety: g must point to an array of length q.
-    let g = unsafe { slice::from_raw_parts(g, q as usize) };
+    let g = unsafe { slice::from_raw_parts(g.cast(), q as usize) };
 
     // Safety: r and g must be the same size.
     unsafe {
@@ -84,12 +81,13 @@ pub unsafe extern "C" fn count_routes(
         }
     }
 
-    solution::count_routes_safe(n as u32, p as u32, &RF::from(r), &GF::from(g));
+    solution::count_routes_safe(n as u32, p as u32, r, g);
 
     #[cfg(feature = "mem")]
     println!("Memory: {} MB", PEAK_ALLOC.peak_usage_as_mb());
 }
 
+#[no_panic]
 fn call_answer(x: usize) {
     answer(x as i32);
 }

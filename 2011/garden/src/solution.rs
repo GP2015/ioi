@@ -2,20 +2,20 @@ mod passed_map;
 mod state;
 mod state_map;
 
-use crate::{
-    array_readers::{gf::GF, rf::RF},
-    solution::state_map::StateMap,
-};
+use crate::solution::state_map::StateMap;
 #[cfg(feature = "par")]
-use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
+use alloc::vec::Vec;
+use no_panic::no_panic;
+#[cfg(feature = "par")]
+use rayon::iter::{IntoParallelIterator as _, IntoParallelRefIterator as _, ParallelIterator as _};
 
 #[cfg(not(feature = "par"))]
-pub fn count_routes_safe(n: u32, p: u32, r: &RF, g: &GF) {
+pub fn count_routes_safe(n: u32, p: u32, r: &[[u32; 2]], g: &[u32]) {
     let state_map = StateMap::from(n, p, r);
 
-    for steps in g.iter() {
+    for &steps in g {
         let mut number_of_routes = 0;
-        for starting_fountain in 0..state_map.n() {
+        for starting_fountain in 0..n {
             if state_reaches_p_in_steps(&state_map, starting_fountain, steps, p) {
                 number_of_routes += 1;
             }
@@ -26,12 +26,12 @@ pub fn count_routes_safe(n: u32, p: u32, r: &RF, g: &GF) {
 }
 
 #[cfg(feature = "par")]
-pub fn count_routes_safe(n: u32, p: u32, r: &RF, g: &GF) {
+pub fn count_routes_safe(n: u32, p: u32, r: &[[u32; 2]], g: &[u32]) {
     let state_map = StateMap::from(n, p, r);
 
     g.par_iter()
-        .map(|steps| {
-            (0..state_map.n())
+        .map(|&steps| {
+            (0..n)
                 .into_par_iter()
                 .filter(|&starting_fountain| {
                     state_reaches_p_in_steps(&state_map, starting_fountain, steps, p)
@@ -43,6 +43,7 @@ pub fn count_routes_safe(n: u32, p: u32, r: &RF, g: &GF) {
         .for_each(crate::call_answer);
 }
 
+#[no_panic]
 fn state_reaches_p_in_steps(
     state_map: &StateMap,
     starting_fountain: u32,

@@ -1,6 +1,7 @@
-use std::hint;
+use core::hint;
 
 use getset::CopyGetters;
+use no_panic::no_panic;
 
 #[derive(Clone, Copy, CopyGetters)]
 pub struct State {
@@ -11,6 +12,7 @@ pub struct State {
 }
 
 impl State {
+    #[no_panic]
     pub fn from(fountain: u32, took_best_trail: bool) -> Self {
         Self {
             fountain,
@@ -18,12 +20,13 @@ impl State {
         }
     }
 
-    pub fn id(self, n: u32) -> usize {
-        let id = ((self.fountain as usize) << 1) | usize::from(self.took_best_trail);
+    #[no_panic]
+    pub fn id(self, n: u32) -> u32 {
+        let id = (self.fountain << 1) | u32::from(self.took_best_trail);
 
         // Safety: id cannot be greater than n * 2
         unsafe {
-            hint::assert_unchecked(id < (n as usize * 2));
+            hint::assert_unchecked(id < n * 2);
         }
 
         id

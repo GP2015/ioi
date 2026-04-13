@@ -1,5 +1,6 @@
 use crate::solution::state::State;
 use getset::CopyGetters;
+use no_panic::no_panic;
 
 #[derive(Clone, Copy, CopyGetters)]
 pub struct StatesPassedMapRead {
@@ -10,6 +11,7 @@ pub struct StatesPassedMapRead {
 }
 
 impl StatesPassedMapRead {
+    #[no_panic]
     pub fn from(state: State, steps: u32) -> Self {
         Self { state, steps }
     }
