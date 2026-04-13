@@ -10,7 +10,6 @@ pub struct StatesPassedMapRead {
 }
 
 impl StatesPassedMapRead {
-    
     pub fn from(state: State, steps: u32) -> Self {
         Self { state, steps }
     }

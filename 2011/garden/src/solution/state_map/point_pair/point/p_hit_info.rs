@@ -9,7 +9,6 @@ pub struct PHitInfo {
 }
 
 impl PHitInfo {
-    
     pub fn from(steps_to: u32, took_best_trail: bool) -> Self {
         Self {
             steps_to,
