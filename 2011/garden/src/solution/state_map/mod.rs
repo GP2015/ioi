@@ -8,11 +8,7 @@ use crate::solution::{
         point::{StateMapPoint, p_hit_info::PHitInfo},
     },
 };
-use std::hint;
 use delegate::delegate;
-use no_panic::no_panic;
-#[cfg(feature = "par")]
-use rayon::iter::{IntoParallelRefMutIterator as _, ParallelIterator as _};
 
 pub struct StateMap {
     point_pairs: Box<[StateMapPointPair]>,
@@ -20,56 +16,47 @@ pub struct StateMap {
 }
 
 impl StateMap {
-    #[inline]
-    #[no_panic]
     fn point_pair(&self, fountain: u32) -> &StateMapPointPair {
-        self.point_pairs.get(fountain as usize).unwrap_or_else(|| {
-            // Safety: fountain must be a valid index.
-            unsafe { hint::unreachable_unchecked() }
-        })
+        self.point_pairs.get(fountain as usize).unwrap()
     }
 
-    #[inline]
-    #[no_panic]
     fn point_pair_mut(&mut self, fountain: u32) -> &mut StateMapPointPair {
-        self.point_pairs
-            .get_mut(fountain as usize)
-            .unwrap_or_else(|| {
-                // Safety: fountain must be a valid index.
-                unsafe { hint::unreachable_unchecked() }
-            })
+        self.point_pairs.get_mut(fountain as usize).unwrap()
+    }
+
+    fn best_in(&self, fountain: u32) -> &StateMapPoint {
+        &self.point_pair(fountain).best_in
+    }
+
+    fn runner_in(&self, fountain: u32) -> &StateMapPoint {
+        &self.point_pair(fountain).runner_in
+    }
+
+    fn best_in_mut(&mut self, fountain: u32) -> &mut StateMapPoint {
+        &mut self.point_pair_mut(fountain).best_in
+    }
+
+    fn runner_in_mut(&mut self, fountain: u32) -> &mut StateMapPoint {
+        &mut self.point_pair_mut(fountain).runner_in
     }
 
     delegate! {
-        #[inline]
-        #[no_panic]
         to |fountain: u32| self.point_pair(fountain) {
-            fn best_in(&self) -> &StateMapPoint;
-            fn runner_in(&self) -> &StateMapPoint;
             pub fn point(&self, took_best_trail: bool) -> &StateMapPoint;
         }
 
-        #[inline]
-        #[no_panic]
         to |fountain: u32| self.point_pair_mut(fountain) {
-            fn best_in_mut(&mut self) -> &mut StateMapPoint;
-            fn runner_in_mut(&mut self) -> &mut StateMapPoint;
             fn point_mut(&mut self, took_best_trail: bool) -> &mut StateMapPoint;
         }
     }
 
-    #[inline]
-    #[no_panic]
     fn point_state(&self, state: State) -> &StateMapPoint {
-        self.point_pair(state.fountain())
-            .point(state.took_best_trail())
+        self.point_pair(state.fountain).point(state.took_best_trail)
     }
 
-    #[inline]
-    #[no_panic]
     fn point_state_mut(&mut self, state: State) -> &mut StateMapPoint {
-        self.point_pair_mut(state.fountain())
-            .point_mut(state.took_best_trail())
+        self.point_pair_mut(state.fountain)
+            .point_mut(state.took_best_trail)
     }
 
     pub fn from(n: u32, p: u32, r: &[[u32; 2]]) -> Self {
@@ -85,7 +72,6 @@ impl StateMap {
         map
     }
 
-    #[no_panic]
     fn add_next_states(&mut self, r: &[[u32; 2]]) {
         for [current_fountain, next_fountain] in r {
             if self.add_next_state(*current_fountain, *next_fountain) {
@@ -94,19 +80,18 @@ impl StateMap {
         }
     }
 
-    #[no_panic]
     fn add_next_state(&mut self, current_fountain: u32, next_fountain: u32) -> bool {
-        if self.best_in(current_fountain).next_state().is_some() {
+        if self.best_in(current_fountain).next_state.is_some() {
             return true;
         }
 
-        let took_best_trail = self.runner_in(current_fountain).next_state().is_none();
+        let took_best_trail = self.runner_in(current_fountain).next_state.is_none();
         let next_took_best_trail;
 
-        if self.runner_in(next_fountain).next_state().is_some() {
+        if self.runner_in(next_fountain).next_state.is_some() {
             next_took_best_trail = false;
 
-            if self.best_in(next_fountain).next_state().is_none() {
+            if self.best_in(next_fountain).next_state.is_none() {
                 let state = State::from(current_fountain, took_best_trail);
                 self.best_in_mut(next_fountain).set_next_state(state);
             }
@@ -124,27 +109,13 @@ impl StateMap {
         false
     }
 
-    #[cfg(not(feature = "par"))]
-    #[no_panic]
     fn add_return_states(&mut self) {
         for pair in &mut self.point_pairs {
-            if pair.best_in().next_state().is_none() {
-                // Safety: all fountains should have at least one path in, guaranteeing a next_state.
-                let state = unsafe { pair.runner_in().next_state_unchecked() };
-                pair.best_in_mut().set_next_state(state);
+            if pair.best_in.next_state.is_none() {
+                let state = pair.runner_in.next_state.unwrap();
+                pair.best_in.set_next_state(state);
             }
         }
-    }
-
-    #[cfg(feature = "par")]
-    fn add_return_states(&mut self) {
-        self.point_pairs.par_iter_mut().for_each(|pair| {
-            if pair.best_in().next_state().is_none() {
-                // Safety: all fountains should have at least one path in, guaranteeing a next_state.
-                let state = unsafe { pair.runner_in().next_state_unchecked() };
-                pair.best_in_mut().set_next_state(state);
-            }
-        });
     }
 
     fn add_distances_to_p(&mut self, p: u32) {
@@ -169,7 +140,7 @@ impl StateMap {
     ) {
         states_passed_map.clear();
 
-        if self.point_state(current_state).found_if_can_reach_p() {
+        if self.point_state(current_state).found_if_can_reach_p {
             return;
         }
 
@@ -177,30 +148,35 @@ impl StateMap {
         let mut check_if_p = false;
 
         loop {
-            if check_if_p && current_state.fountain() == p {
+            if check_if_p && current_state.fountain == p {
                 for read in states_passed_map.iter() {
-                    let steps_to_p = step_counter - read.steps();
-                    let p_took_best_trail = current_state.took_best_trail();
-                    let p_hit_info = PHitInfo::from(steps_to_p, p_took_best_trail);
-                    self.point_state_mut(read.state())
-                        .set_p_hit_info(p_hit_info);
+                    let steps_to_p = step_counter - read.steps;
+                    let p_took_best_trail = current_state.took_best_trail;
+                    let p_hit_info = PHitInfo {
+                        steps_to: steps_to_p,
+                        took_best_trail: p_took_best_trail,
+                    };
+                    self.point_state_mut(read.state).set_p_hit_info(p_hit_info);
                 }
                 break;
             }
 
             check_if_p = true;
 
-            if self.point_state(current_state).found_if_can_reach_p() {
-                if let Some(p_hit_info) = self.point_state(current_state).p_hit_info() {
+            if self.point_state(current_state).found_if_can_reach_p {
+                if let Some(p_hit_info) = self.point_state(current_state).p_hit_info {
                     for read in states_passed_map.iter() {
-                        let steps = step_counter - read.steps() + p_hit_info.steps_to();
-                        let read_p_hit_info = PHitInfo::from(steps, p_hit_info.took_best_trail());
-                        self.point_state_mut(read.state())
+                        let steps = step_counter - read.steps + p_hit_info.steps_to;
+                        let read_p_hit_info = PHitInfo {
+                            steps_to: steps,
+                            took_best_trail: p_hit_info.took_best_trail,
+                        };
+                        self.point_state_mut(read.state)
                             .set_p_hit_info(read_p_hit_info);
                     }
                 } else {
                     for read in states_passed_map.iter() {
-                        self.point_state_mut(read.state()).set_cannot_reach_p();
+                        self.point_state_mut(read.state).set_cannot_reach_p();
                     }
                 }
                 break;
@@ -208,15 +184,14 @@ impl StateMap {
 
             if states_passed_map.contains_state(current_state) {
                 for read in states_passed_map.iter() {
-                    self.point_state_mut(read.state()).set_cannot_reach_p();
+                    self.point_state_mut(read.state).set_cannot_reach_p();
                 }
                 break;
             }
 
             states_passed_map.insert(current_state, step_counter);
 
-            // Safety: all states have had their next states set already.
-            current_state = unsafe { self.point_state(current_state).next_state_unchecked() };
+            current_state = self.point_state(current_state).next_state.unwrap();
             step_counter += 1;
         }
     }

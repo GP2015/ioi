@@ -1,19 +1,14 @@
 pub mod point;
 
 use crate::solution::state_map::point_pair::point::StateMapPoint;
-use getset::{Getters, MutGetters};
-use no_panic::no_panic;
 
-#[derive(Clone, Getters, MutGetters)]
+#[derive(Clone)]
 pub struct StateMapPointPair {
-    #[getset(get = "pub", get_mut = "pub")]
-    best_in: StateMapPoint,
-    #[getset(get = "pub", get_mut = "pub")]
-    runner_in: StateMapPoint,
+    pub best_in: StateMapPoint,
+    pub runner_in: StateMapPoint,
 }
 
 impl StateMapPointPair {
-    #[no_panic]
     pub fn new() -> Self {
         Self {
             best_in: StateMapPoint::new(),
@@ -21,7 +16,6 @@ impl StateMapPointPair {
         }
     }
 
-    #[no_panic]
     pub fn point(&self, took_best_trail: bool) -> &StateMapPoint {
         if took_best_trail {
             &self.best_in
@@ -30,7 +24,6 @@ impl StateMapPointPair {
         }
     }
 
-    #[no_panic]
     pub fn point_mut(&mut self, took_best_trail: bool) -> &mut StateMapPoint {
         if took_best_trail {
             &mut self.best_in

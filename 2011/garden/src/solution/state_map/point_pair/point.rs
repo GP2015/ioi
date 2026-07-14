@@ -1,22 +1,15 @@
 pub mod p_hit_info;
 
 use crate::solution::{state::State, state_map::point_pair::point::p_hit_info::PHitInfo};
-use std::hint;
-use getset::{CopyGetters, Setters};
-use no_panic::no_panic;
 
-#[derive(Clone, CopyGetters, Setters)]
+#[derive(Clone)]
 pub struct StateMapPoint {
-    #[getset(get_copy = "pub")]
-    next_state: Option<State>,
-    #[getset(get_copy = "pub")]
-    found_if_can_reach_p: bool,
-    #[getset(get_copy = "pub")]
-    p_hit_info: Option<PHitInfo>,
+    pub next_state: Option<State>,
+    pub found_if_can_reach_p: bool,
+    pub p_hit_info: Option<PHitInfo>,
 }
 
 impl StateMapPoint {
-    #[no_panic]
     pub fn new() -> Self {
         Self {
             next_state: None,
@@ -25,26 +18,14 @@ impl StateMapPoint {
         }
     }
 
-    #[no_panic]
-    pub unsafe fn next_state_unchecked(&self) -> State {
-        // Safety: next_state should not be None.
-        unsafe {
-            self.next_state
-                .unwrap_or_else(|| hint::unreachable_unchecked())
-        }
-    }
-
-    #[no_panic]
     pub fn set_next_state(&mut self, next_state: State) {
         self.next_state = Some(next_state);
     }
 
-    #[no_panic]
     pub fn set_cannot_reach_p(&mut self) {
         self.found_if_can_reach_p = true;
     }
 
-    #[no_panic]
     pub fn set_p_hit_info(&mut self, p_hit_info: PHitInfo) {
         self.found_if_can_reach_p = true;
         self.p_hit_info = Some(p_hit_info);

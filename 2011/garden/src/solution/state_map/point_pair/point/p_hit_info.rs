@@ -1,20 +1,5 @@
-use getset::CopyGetters;
-use no_panic::no_panic;
-
-#[derive(Clone, Copy, CopyGetters)]
+#[derive(Clone, Copy)]
 pub struct PHitInfo {
-    #[getset(get_copy = "pub")]
-    steps_to: u32,
-    #[getset(get_copy = "pub")]
-    took_best_trail: bool,
-}
-
-impl PHitInfo {
-    #[no_panic]
-    pub fn from(steps_to: u32, took_best_trail: bool) -> Self {
-        Self {
-            steps_to,
-            took_best_trail,
-        }
-    }
+    pub steps_to: u32,
+    pub took_best_trail: bool,
 }
