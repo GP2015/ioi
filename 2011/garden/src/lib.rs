@@ -14,7 +14,7 @@ unsafe extern "C" {
     safe fn answer(x: c_int);
 }
 
-use std::{ffi::c_int, slice};
+use core::{ffi::c_int, slice};
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
@@ -58,8 +58,4 @@ pub unsafe extern "C" fn count_routes(
     }
 
     solution::count_routes_safe(n as u32, p as u32, r, g);
-}
-
-fn call_answer(x: usize) {
-    answer(x as i32);
 }

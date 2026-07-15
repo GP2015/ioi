@@ -12,5 +12,4 @@ panic = "abort"
 crate-type = ["staticlib"]
 
 [dependencies]
-delegate = "0.13.5"
-mimalloc = "0.1.48"
+mimalloc = "0.1.52"

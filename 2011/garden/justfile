@@ -1,0 +1,33 @@
+_cargo_build *RUSTFLAGS:
+    RUSTFLAGS="-Ctarget-cpu=native {{RUSTFLAGS}}" cargo build --release
+
+_clang_build *FLAGS:
+    mkdir -p build
+    clang -std=c23 -static {{FLAGS}} \
+        -O3 -flto=full -march=native \
+        c_src/grader.c target/release/libgarden.a \
+        -Iinclude/ \
+        -o build/main.bin
+
+build: (_cargo_build) (_clang_build)
+
+run folder: build
+    for f in test_data/{{folder}}/*; do \
+        echo "Running $f"; \
+        ./build/main.bin < $f; \
+    done
+
+profile: (_cargo_build "-Cdebuginfo=2") (_clang_build "-g")
+    mkdir -p profile
+    rm -f profile/accumulated.folded
+
+    find test_data -type f | while read -r f; do \
+        echo "Profiling $f"; \
+        sudo perf record -F 4000 -g -o profile/perf.temp.data build/main.bin < $f; \
+        sudo perf script -i profile/perf.temp.data | stackcollapse-perf >> profile/accumulated.folded; \
+    done
+    flamegraph < profile/accumulated.folded > profile/flamegraph.svg
+
+clean:
+    cargo clean
+    rm -rf build profile

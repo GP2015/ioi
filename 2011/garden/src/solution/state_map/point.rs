@@ -1,6 +1,10 @@
-pub mod p_hit_info;
+use crate::solution::state::State;
 
-use crate::solution::{state::State, state_map::point_pair::point::p_hit_info::PHitInfo};
+#[derive(Clone, Copy)]
+pub struct PHitInfo {
+    pub steps_to: u32,
+    pub best: bool,
+}
 
 #[derive(Clone)]
 pub struct StateMapPoint {
@@ -16,10 +20,6 @@ impl StateMapPoint {
             found_if_can_reach_p: false,
             p_hit_info: None,
         }
-    }
-
-    pub fn set_next_state(&mut self, next_state: State) {
-        self.next_state = Some(next_state);
     }
 
     pub fn set_cannot_reach_p(&mut self) {

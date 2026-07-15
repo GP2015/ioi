@@ -1,13 +1,17 @@
-pub mod read;
+use crate::solution::state::State;
 
-use crate::solution::{passed_map::read::StatesPassedMapRead, state::State};
+#[derive(Clone, Copy)]
+pub struct Read {
+    pub state: State,
+    pub steps: u32,
+}
 
-pub struct StatesPassedMap {
+pub struct PMap {
     steps_data: Box<[Option<u32>]>,
     states: Vec<State>,
 }
 
-impl StatesPassedMap {
+impl PMap {
     pub fn new(n: u32) -> Self {
         Self {
             steps_data: vec![None; n as usize * 2].into_boxed_slice(),
@@ -15,8 +19,8 @@ impl StatesPassedMap {
         }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = StatesPassedMapRead> {
-        self.states.iter().map(|&state| StatesPassedMapRead {
+    pub fn iter(&self) -> impl Iterator<Item = Read> {
+        self.states.iter().map(|&state| Read {
             state,
             steps: self.steps_data[state.id() as usize].unwrap(),
         })
