@@ -2,22 +2,33 @@
 #![allow(
     clippy::missing_panics_doc,
     clippy::many_single_char_names,
-    clippy::similar_names,
-    clippy::cast_sign_loss,
-    clippy::cast_possible_truncation,
-    clippy::cast_possible_wrap
+    clippy::undocumented_unsafe_blocks
 )]
 
-mod solution;
+mod graph;
+mod p_info;
+mod parse;
+mod passed_map;
+
+use crate::parse::ParsedArgs;
+use core::ffi::c_int;
+use mimalloc::MiMalloc;
 
 unsafe extern "C" {
     safe fn answer(x: c_int);
 }
 
-use core::{ffi::c_int, slice};
-
 #[global_allocator]
-static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+static GLOBAL: MiMalloc = MiMalloc;
+
+struct RawArgs {
+    pub n: c_int,
+    pub m: c_int,
+    pub p: c_int,
+    pub r: *const c_int,
+    pub q: c_int,
+    pub g: *const c_int,
+}
 
 /// Implementation of the `count_routes` function.
 ///
@@ -33,29 +44,34 @@ pub unsafe extern "C" fn count_routes(
     q: c_int,
     g: *const c_int,
 ) {
-    assert!((2..150_001).contains(&n));
-    assert!((1..150_001).contains(&m));
-    assert!((0..150_000).contains(&p));
-    assert!((1..2_001).contains(&q));
+    let raw_args = RawArgs { n, m, p, r, q, g };
+    let parsed_args = ParsedArgs::from_raw(&raw_args);
+    count_routes_impl(&parsed_args);
+}
 
-    // Safety: r must point to an array that is twice as long as length m.
-    let r = unsafe { slice::from_raw_parts(r.cast(), m as usize * 2) };
-    let (r, _) = r.as_chunks::<2>();
+fn count_routes_impl(args: &ParsedArgs) {
+    let ParsedArgs { n, p, r, g } = *args;
+    let graph = graph::create(n, r);
 
-    // Safety: g must point to an array of length q.
-    let g = unsafe { slice::from_raw_parts(g.cast(), q as usize) };
+    let p_info = p_info::create(graph, n, p);
 
-    assert_eq!(r.len(), m as usize);
-    assert_eq!(g.len(), q as usize);
+    //
 
-    for row in r {
-        assert!((0..150_000).contains(&row[0]));
-        assert!((0..150_000).contains(&row[1]));
+    for &steps in g {
+        let number_of_routes = (0..n)
+            .filter(|&start_fount| state_reaches_p_in_steps(graph, start_fount, steps, p))
+            .count();
+
+        answer(number_of_routes.try_into().unwrap());
+    }
+}
+
+fn state_reaches_p_in_steps(graph: &[u32], start_fount: u32, steps: u32, p: u32) -> bool {
+    let mut idx = start_fount << 1;
+
+    for _ in 0..steps {
+        idx = graph[idx as usize];
     }
 
-    for val in g {
-        assert!((1..1_000_000_001).contains(val));
-    }
-
-    solution::count_routes_safe(n as u32, p as u32, r, g);
+    idx >> 1 == p
 }

@@ -13,3 +13,4 @@ crate-type = ["staticlib"]
 
 [dependencies]
 mimalloc = "0.1.52"
+paste = "1.0.15"
